@@ -5,11 +5,11 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ReadOnlyModelViewSet
 
-from recipes.models import Tag
+from recipes.models import Tag, Ingredient
 from users.models import Follow
 
 from .exceptions import FollowExistsError, FollowYouError
-from .serializers import TagSerializer
+from .serializers import TagSerializer, IngredientSerializer
 
 CustomUser = get_user_model()
 
@@ -56,3 +56,9 @@ class TagViewSet(ReadOnlyModelViewSet):
     """Вывод всех тегов или только конкретного"""
     serializer_class = TagSerializer
     queryset = Tag.objects.all()
+
+
+class IngredientViewSet(ReadOnlyModelViewSet):
+    """Вывод всех ингредиентов или только конкретного"""
+    serializer_class = IngredientSerializer
+    queryset = Ingredient.objects.all()

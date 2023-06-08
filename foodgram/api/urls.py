@@ -4,7 +4,9 @@ from rest_framework import routers
 from . import views
 
 router = routers.DefaultRouter()
+
 router.register(r'tags', views.TagViewSet, basename='tags')
+router.register(r'ingredients', views.IngredientViewSet, basename='ingredients')
 
 
 urlpatterns = [
