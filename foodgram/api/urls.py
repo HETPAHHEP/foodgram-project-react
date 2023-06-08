@@ -3,12 +3,12 @@ from rest_framework import routers
 
 from . import views
 
-# router = routers.DefaultRouter()
-# router.register(r'')
+router = routers.DefaultRouter()
+router.register(r'tags', views.TagViewSet, basename='tags')
 
 
 urlpatterns = [
-    # path('auth/signup/', views.RegisterUserView.as_view(), name='registration'),
+    path('', include(router.urls)),
     path('', include('djoser.urls')),
-    path('auth/', include('djoser.urls.authtoken'))
+    path('auth/', include('djoser.urls.authtoken')),
 ]

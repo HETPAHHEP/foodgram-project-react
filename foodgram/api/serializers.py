@@ -4,6 +4,8 @@ from djoser.serializers import \
 from djoser.serializers import UserSerializer
 from rest_framework import serializers
 
+from recipes.models import Tag
+
 CustomUser = get_user_model()
 
 
@@ -21,3 +23,10 @@ class CustomUserSerializer(UserSerializer):
     class Meta(UserSerializer.Meta):
         model = CustomUser
         fields = ['email', 'id', 'username', 'first_name', 'last_name']
+
+
+class TagSerializer(serializers.ModelSerializer):
+    """Сериализатор тегов"""
+    class Meta:
+        model = Tag
+        fields = '__all__'

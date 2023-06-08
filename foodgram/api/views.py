@@ -3,10 +3,13 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import authentication, exceptions, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.viewsets import ReadOnlyModelViewSet
 
+from recipes.models import Tag
 from users.models import Follow
 
 from .exceptions import FollowExistsError, FollowYouError
+from .serializers import TagSerializer
 
 CustomUser = get_user_model()
 
@@ -41,7 +44,6 @@ class FollowUserView(APIView):
 
 class UnfollowUserView(APIView):
     """Отписаться от автора"""
-
     def delete(self, request, user_id):
         author = CustomUser.objects.filter(id=user_id).first()
 
@@ -50,5 +52,7 @@ class UnfollowUserView(APIView):
                 raise FollowYouError(detail=_('Невозможно отписаться от себя'))
 
 
-
-
+class TagViewSet(ReadOnlyModelViewSet):
+    """Вывод всех тегов или только конкретного"""
+    serializer_class = TagSerializer
+    queryset = Tag.objects.all()
