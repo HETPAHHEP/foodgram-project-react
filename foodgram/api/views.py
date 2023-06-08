@@ -1,28 +1,54 @@
-from rest_framework import permissions, status
+from django.contrib.auth import get_user_model
+from django.utils.translation import gettext_lazy as _
+from rest_framework import authentication, exceptions, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-# from .serializers import RegisterUserSerializer
-#
-#
-# class RegisterUserView(APIView):
-#     """Инициализация регистрации пользователя"""
-#     serializer_class = RegisterUserSerializer
-#     permissions = [permissions.AllowAny]
-#
-#     def post(self, request):
-#         serializer = self.serializer(data=request.data)
-#
-#         if serializer.is_valid(raise_exception=True):
-#             email = serializer.validate_data['email']
-#             username = serializer.validate_data['username']
-#
-#             start_registration()
-#             return Response(data={
-#                 'email': email,
-#                 'username': username
-#             }, status=status.HTTP_201_CREATED)
-#
-#         # return Response(data={
-#         #     'error': 'User registration error'
-#         # }, status=status.HTTP_400_BAD_REQUEST)
+from users.models import Follow
+
+from .exceptions import FollowExistsError, FollowYouError
+
+CustomUser = get_user_model()
+
+
+class FollowUserView(APIView):
+    """Подписаться на автора"""
+    serializer_class = ''
+
+    def post(self, request, user_id):
+        author = CustomUser.objects.filter(id=user_id).first()
+
+        if author.exists():
+            if request.user == author:
+                raise FollowYouError
+
+            if Follow.objects.filter(user=request.user, author=author).exists():
+                raise FollowExistsError
+
+            Follow(user=request.user, author=author)
+
+            return Response()  # TODO: Добавить сериализатор с подробной инфой юзера
+
+        raise exceptions.NotFound(
+            detail=_('Страница не найдена'),
+            code='detail'
+        )
+
+        # return Response(data={
+        #     'detail': 'Страница не найдена'
+        # }, status=status.HTTP_404_NOT_FOUND)
+
+
+class UnfollowUserView(APIView):
+    """Отписаться от автора"""
+
+    def delete(self, request, user_id):
+        author = CustomUser.objects.filter(id=user_id).first()
+
+        if author.exists():
+            if request.user == author:
+                raise FollowYouError(detail=_('Невозможно отписаться от себя'))
+
+
+
+

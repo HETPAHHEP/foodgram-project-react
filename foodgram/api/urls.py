@@ -10,4 +10,5 @@ from . import views
 urlpatterns = [
     # path('auth/signup/', views.RegisterUserView.as_view(), name='registration'),
     path('', include('djoser.urls')),
+    path('auth/', include('djoser.urls.authtoken'))
 ]
