@@ -18,5 +18,3 @@ class FollowExistsError(APIException):
     default_detail = _('Подписка на автора уже осуществлена')
     default_code = 'errors'
     status_code = status.HTTP_400_BAD_REQUEST
-
-

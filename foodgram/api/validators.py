@@ -19,4 +19,3 @@ class HexColorValidator:
     def __call__(self, value):
         if not re.match(self.pattern, self.detail):
             raise ValidationError(detail=self.detail, code=self.code)
-

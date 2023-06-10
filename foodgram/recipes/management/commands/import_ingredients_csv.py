@@ -3,13 +3,16 @@ from csv import reader as read_csv
 
 from django.core.management import BaseCommand, CommandError
 from django.db import transaction
+from recipes.models import Ingredient
 
 from foodgram.settings import BASE_DIR
-from recipes.models import Ingredient
 
 
 class Command(BaseCommand):
-    """Команда Django для импорта ингредиентов из CSV в соответствующую таблицу"""
+    """
+    Команда Django для импорта ингредиентов из CSV
+    в соответствующую таблицу
+    """
     help = 'Loads Ingredients data from CSV'
 
     def handle(self, *args, **options):
@@ -39,4 +42,7 @@ class Command(BaseCommand):
                         raise CommandError('Error while adding data')
 
         self.stdout.write(self.style.SUCCESS(
-            f'{Ingredient.__name__} data from {csv_file} imported successfully. Total rows: {total_rows}'))
+            f'{Ingredient.__name__} data from {csv_file} '
+            f'imported successfully. '
+            f'Total rows: {total_rows}'
+        ))

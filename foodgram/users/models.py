@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AbstractUser, BaseUserManager
+from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -17,17 +17,6 @@ class CustomUser(AbstractUser):
     last_name = models.CharField(
         max_length=150,
         verbose_name=_('Фамилия')
-    )
-    bio = models.TextField(
-        max_length=160,
-        blank=True,
-        null=True,
-        verbose_name=_('О себе')
-    )
-    avatar = models.ImageField(
-        upload_to='media/users/avatars/',
-        blank=True, null=True,
-        verbose_name=_('Фото')
     )
 
     REQUIRED_FIELDS = ['email', 'first_name', 'last_name', 'password']
@@ -59,7 +48,10 @@ class Follow(models.Model):
         verbose_name = _('Подписчик')
         verbose_name_plural = _('Подписчики')
         constraints = [
-            models.UniqueConstraint(fields=['user', 'author'], name='unique_followers'),
+            models.UniqueConstraint(
+                fields=['user', 'author'],
+                name='unique_followers'
+            ),
         ]
 
     def __str__(self):
