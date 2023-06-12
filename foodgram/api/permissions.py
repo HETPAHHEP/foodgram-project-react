@@ -14,5 +14,5 @@ class IsOwnerAdminOrReadOnly(BasePermission):
             request.user.is_authenticated and
 
             (obj.user == request.user or
-             request.user.is_superuser)
+             request.user.is_staff)
         )

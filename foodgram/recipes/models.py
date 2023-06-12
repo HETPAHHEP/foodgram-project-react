@@ -90,7 +90,7 @@ class Recipe(models.Model):
     author = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
-        related_name='author',
+        related_name='recipes',
         verbose_name=_('Автор')
     )
     ingredients = models.ManyToManyField(
@@ -119,6 +119,9 @@ class Recipe(models.Model):
                 name='unique_recipe_name_per_author'
             )
         ]
+
+    def __str__(self):
+        return self.name
 
 
 class RecipeIngredient(models.Model):

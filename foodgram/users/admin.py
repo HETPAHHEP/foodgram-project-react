@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
 
-from .models import Follow
+from .models import Subscription
 
 CustomUser = get_user_model()
 
@@ -13,8 +13,8 @@ class UserAdmin(admin.ModelAdmin):
     list_filter = ['email', 'username']
 
 
-@admin.register(Follow)
-class FollowAdmin(admin.ModelAdmin):
+@admin.register(Subscription)
+class SubscriptionAdmin(admin.ModelAdmin):
     list_display = ['id', 'follower_username', 'author_username']
 
     def follower_username(self, obj):

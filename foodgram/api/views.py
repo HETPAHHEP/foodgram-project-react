@@ -1,59 +1,79 @@
 from django.contrib.auth import get_user_model
 from django.utils.translation import gettext_lazy as _
+from djoser.views import UserViewSet
 from recipes.models import Ingredient, Recipe, Tag
-from rest_framework import exceptions
+from rest_framework import status
+from rest_framework.decorators import action
+from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-from users.models import Follow
 
-from .exceptions import FollowExistsError, FollowYouError
-from .paginators import CustomPaginationRecipe
+from .exceptions import SubscriptionDoesntExistError, SubscriptionYouError
+from .paginators import CustomPagination
 from .permissions import IsOwnerAdminOrReadOnly
 from .serializers import (IngredientSerializer, RecipeReadSerializer,
-                          RecipeWriteSerializer, TagSerializer)
+                          RecipeWriteSerializer, SubscriptionListSerializer,
+                          SubscriptionSerializer, TagSerializer)
 
 CustomUser = get_user_model()
 
 
-class FollowUserView(APIView):
-    """Подписаться на автора"""
-    serializer_class = ''
+class CustomUserViewSet(UserViewSet):
+    """Взаимодействие с пользователями и подписками"""
+    subscription_serializer = SubscriptionListSerializer
+    create_subscription_serializer = SubscriptionSerializer
+    pagination_class = CustomPagination
 
-    def post(self, request, user_id):
-        author = CustomUser.objects.filter(id=user_id).first()
-
-        if author.exists():
-            if request.user == author:
-                raise FollowYouError
-
-            if request.user.follower.objects.filter(
-                    user=request.user, author=author).exists():
-                raise FollowExistsError
-
-            Follow(user=request.user, author=author)
-
-            return Response()  # TODO: сериализатор с подробной инфой юзера
-
-        raise exceptions.NotFound(
-            detail=_('Страница не найдена'),
-            code='detail'
+    @action(
+        methods=['get'],
+        detail=False,
+        permission_classes=[IsAuthenticated]
+    )
+    def subscriptions(self, request):
+        """Получить все подписки пользователя"""
+        user = request.user
+        paginated_subscriptions = self.paginate_queryset(
+            CustomUser.objects.filter(subscription__user=user),
         )
+        serializer = self.subscription_serializer(
+            paginated_subscriptions, many=True, context={'request': request})
 
-        # return Response(data={
-        #     'detail': 'Страница не найдена'
-        # }, status=status.HTTP_404_NOT_FOUND)
+        return self.get_paginated_response(data=serializer.data)
 
+    @action(
+        methods=['post', 'delete'],
+        detail=True,
+        permission_classes=[IsAuthenticated]
+    )
+    def subscribe(self, request, id):
+        """Подписаться на пользователя или отписаться от него"""
+        author = get_object_or_404(CustomUser, id=id)
+        user = request.user
 
-class UnfollowUserView(APIView):
-    """Отписаться от автора"""
-    def delete(self, request, user_id):
-        author = CustomUser.objects.filter(id=user_id).first()
+        if request.method == 'POST':
+            serializer = self.create_subscription_serializer(
+                data={'author': author.id, 'user': user.id},
+                context={'request': request}
+            )
+            if serializer.is_valid(raise_exception=True):
+                serializer.save()  # Подписываемся на автора
+                return Response(
+                    data=serializer.data,
+                    status=status.HTTP_201_CREATED
+                )
 
-        if author.exists():
-            if request.user == author:
-                raise FollowYouError(detail=_('Невозможно отписаться от себя'))
+        if request.method == 'DELETE':
+            if user == author:
+                raise SubscriptionYouError(
+                    detail=_('Невозможно отписаться от себя')
+                )
+
+            if user.subscriber.filter(author=author).exists():
+                user.subscriber.filter(author=author).delete()  # Отписка
+                return Response(status=status.HTTP_204_NO_CONTENT)
+
+            raise SubscriptionDoesntExistError
 
 
 class TagViewSet(ReadOnlyModelViewSet):
@@ -75,15 +95,14 @@ class IngredientViewSet(ReadOnlyModelViewSet):
 class RecipeViewSet(ModelViewSet):
     """Вывод и изменение рецептов"""
     queryset = Recipe.objects.all()
-    pagination_class = CustomPaginationRecipe
+    pagination_class = CustomPagination
 
     permission_classes = []  # По умолчанию: AllowAny
 
     def get_serializer_class(self):
         if self.action in ('create', 'update'):
             return RecipeWriteSerializer
-        if self.action in ('list', 'retrieve'):
-            return RecipeReadSerializer
+        return RecipeReadSerializer
 
     def get_permissions(self):
         if self.action == 'create':

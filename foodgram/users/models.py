@@ -29,18 +29,18 @@ class CustomUser(AbstractUser):
         return self.username
 
 
-class Follow(models.Model):
+class Subscription(models.Model):
     """Модель подписок пользователей на авторов"""
     user = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
-        related_name='follower',
+        related_name='subscriber',
         verbose_name=_('Пользователь')
     )
     author = models.ForeignKey(
         CustomUser,
         on_delete=models.CASCADE,
-        related_name='following',
+        related_name='subscription',
         verbose_name=_('Автор')
     )
 

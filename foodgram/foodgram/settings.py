@@ -181,6 +181,11 @@ DJOSER = {
     'PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND': True,
     'USERNAME_RESET_SHOW_EMAIL_NOT_FOUND': True,
 
+    'HIDE_USERS': False,
+
+    'PERMISSIONS': {
+        'user': ('rest_framework.permissions.AllowAny', )
+    },
     'SERIALIZERS': {
         'user_create': 'api.serializers.RegisterUserSerializer',
         'user': 'api.serializers.CustomUserSerializer',
