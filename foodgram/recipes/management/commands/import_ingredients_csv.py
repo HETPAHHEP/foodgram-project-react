@@ -3,9 +3,9 @@ from csv import reader as read_csv
 
 from django.core.management import BaseCommand, CommandError
 from django.db import transaction
-from recipes.models import Ingredient
 
 from foodgram.settings import BASE_DIR
+from recipes.models import Ingredient
 
 
 class Command(BaseCommand):

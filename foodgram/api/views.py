@@ -1,7 +1,7 @@
 from django.contrib.auth import get_user_model
+from django.db.utils import IntegrityError
 from django.utils.translation import gettext_lazy as _
 from djoser.views import UserViewSet
-from recipes.models import Ingredient, Recipe, Tag
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
@@ -9,7 +9,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from .exceptions import SubscriptionDoesntExistError, SubscriptionYouError
+from recipes.models import Ingredient, Recipe, Tag
+
+from .exceptions import (RecipeExistsError, SubscriptionDoesntExistError,
+                         SubscriptionYouError)
 from .paginators import CustomPagination
 from .permissions import IsOwnerAdminOrReadOnly
 from .serializers import (IngredientSerializer, RecipeReadSerializer,
@@ -21,8 +24,6 @@ CustomUser = get_user_model()
 
 class CustomUserViewSet(UserViewSet):
     """Взаимодействие с пользователями и подписками"""
-    subscription_serializer = SubscriptionListSerializer
-    create_subscription_serializer = SubscriptionSerializer
     pagination_class = CustomPagination
 
     @action(
@@ -36,7 +37,7 @@ class CustomUserViewSet(UserViewSet):
         paginated_subscriptions = self.paginate_queryset(
             CustomUser.objects.filter(subscription__user=user),
         )
-        serializer = self.subscription_serializer(
+        serializer = SubscriptionListSerializer(
             paginated_subscriptions, many=True, context={'request': request})
 
         return self.get_paginated_response(data=serializer.data)
@@ -52,7 +53,7 @@ class CustomUserViewSet(UserViewSet):
         user = request.user
 
         if request.method == 'POST':
-            serializer = self.create_subscription_serializer(
+            serializer = SubscriptionSerializer(
                 data={'author': author.id, 'user': user.id},
                 context={'request': request}
             )
@@ -112,4 +113,7 @@ class RecipeViewSet(ModelViewSet):
         return [permission() for permission in self.permission_classes]
 
     def perform_create(self, serializer):
-        serializer.save(author=self.request.user)
+        try:
+            serializer.save(author=self.request.user)
+        except IntegrityError:
+            raise RecipeExistsError

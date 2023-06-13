@@ -72,12 +72,8 @@ class Recipe(models.Model):
     )
     cooking_time = models.PositiveSmallIntegerField(
         validators=[
-            MinValueValidator(1, message=_(
-                'Добавьте необходимое время приготовления '
-                '(минимальное значение: 1 минута).')),
-            MaxValueValidator(300, message=_(
-                'Максимально возможное время приготовления достигнуто '
-                '(максимальное значение: 300 минут).'))
+            MinValueValidator(1),  # Минимальное время приготовления
+            MaxValueValidator(300)  # Максимальное время приготовления
         ],
         verbose_name=_('Время приготовления')
     )
@@ -125,7 +121,7 @@ class Recipe(models.Model):
 
 
 class RecipeIngredient(models.Model):
-    """Сводная таблица отношения ManyToMany для рецептов и ингредиентов"""
+    """Сводная таблица отношения для рецептов и ингредиентов"""
     recipe = models.ForeignKey(
         Recipe,
         on_delete=models.CASCADE,
@@ -142,14 +138,8 @@ class RecipeIngredient(models.Model):
         default=0,
         verbose_name=_('Количество'),
         validators=[
-            MinValueValidator(
-                1,
-                message=_('Добавьте нужное количество ингредиента')
-            ),  # Минимальное количество ингредиента: 1 ед.
-            MaxValueValidator(
-                10_000,
-                message=_('Убавьте количество ингредиента')
-            )  # Максимальное количество ингредиента: 10 000 ед.
+            MinValueValidator(1),  # Минимальное количество ингредиента
+            MaxValueValidator(10_000)  # Максимальное количество ингредиента
         ],
     )
 

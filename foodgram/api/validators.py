@@ -1,21 +1,90 @@
-import re
-
-from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
-from rest_framework.exceptions import ValidationError
+
+from .exceptions import (IngredientDuplicateError, IngredientLimitError,
+                         SubscriptionExistsError, SubscriptionYouError,
+                         TagDuplicateError)
 
 
-class HexColorValidator:
-    """Валидатор hex-кода цвета"""
-    regex = r'^#([A-Fa-f0-9]{6})$'
-    message = _('Цвет не соответствует hex кодировке')
-    error_code = 'errors'
+class IngredientsValidator:
+    """Валидатор ингредиентов"""
+    message = _('Ингредиенты недействительны')
+    limits = {
+        'ingredients': 30,
+        'amount': 10_000
+    }
 
-    def __init__(self, pattern=regex, detail=message, code=error_code):
-        self.pattern = pattern
-        self.detail = detail
-        self.code = code
+    def __init__(self, data, message=None):
+        self.data = data
+        if message:
+            self.message = message
 
-    def __call__(self, value):
-        if not re.match(self.pattern, self.detail):
-            raise ValidationError(detail=self.detail, code=self.code)
+    def __call__(self):
+        return self.validate(self.data)
+
+    def validate(self, data):
+        ingredients_set = set(
+            ingredient['id'] for ingredient in data
+        )
+
+        if len(data) != len(ingredients_set):
+            raise IngredientDuplicateError
+
+        if len(data) > self.limits['ingredients']:
+            raise IngredientLimitError(self.limits['ingredients'])
+
+        for ingredient in data:
+            if ingredient['amount'] > self.limits['amount']:
+                raise IngredientLimitError(
+                    limit_numb=self.limits['amount'],
+                    detail=_('Превышено количество ингредиента')
+                )
+
+        return True
+
+
+class TagsValidator:
+    """Валидатор тегов"""
+    message = _('Теги недействительны')
+
+    def __init__(self, data, message=None):
+        self.data = data
+        if message:
+            self.message = message
+
+    def __call__(self):
+        return self.validate(self.data)
+
+    @staticmethod
+    def validate(data):
+        print()
+        if len(set(data)) != len(data):
+            raise TagDuplicateError
+
+        return True
+
+
+class SubscriptionValidator:
+    """Валидатор подписки"""
+    message = _('Подписка недействительна')
+
+    def __init__(self, data, message=None):
+        self.data = data
+        if message:
+            self.message = message
+
+    def __call__(self):
+        return self.validate(self.data)
+
+    @staticmethod
+    def validate(data):
+        user = data.get('user')
+        author = data.get('author')
+
+        if user == author:
+            raise SubscriptionYouError
+
+        if user.subscriber.filter(
+                user=user, author=author).exists():
+            raise SubscriptionExistsError
+
+        return True
