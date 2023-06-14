@@ -7,7 +7,7 @@ class SubscriptionYouError(ValidationError):
     """Ошибка при попытке подписаться на себя"""
     default_detail = _('Подписка на себя невозможна')
     default_code = 'errors'
-    status_code = status.HTTP_404_NOT_FOUND
+    status_code = status.HTTP_400_BAD_REQUEST
 
 
 class SubscriptionExistsError(ValidationError):
@@ -17,7 +17,7 @@ class SubscriptionExistsError(ValidationError):
     """
     default_detail = _('Подписка на автора уже осуществлена')
     default_code = 'errors'
-    status_code = status.HTTP_404_NOT_FOUND
+    status_code = status.HTTP_400_BAD_REQUEST
 
 
 class SubscriptionDoesntExistError(ValidationError):
@@ -25,9 +25,11 @@ class SubscriptionDoesntExistError(ValidationError):
     Ошибка при попытке отписаться от автора,
     на которого не была осуществлена подписка
     """
-    default_detail = _('Пользователь не был подписан на автора')
     default_code = 'errors'
-    status_code = status.HTTP_404_NOT_FOUND
+    default_detail = {
+        f'{default_code}': _('Пользователь не был подписан на автора')
+    }
+    status_code = status.HTTP_400_BAD_REQUEST
 
 
 class TagsIngredientsRequiredError(ValidationError):
@@ -89,4 +91,46 @@ class RecipeExistsError(ValidationError):
     """
     default_detail = {"detail": f'{_("Рецепт с таким именем уже существует")}'}
     default_code = 'name'
+    status_code = status.HTTP_400_BAD_REQUEST
+
+
+class FavoriteExistsError(ValidationError):
+    """
+    Невозможно добавить рецепт в избранного,
+    если автора уже сделал это.
+    """
+    default_code = 'errors'
+    default_detail = {f"{default_code}": _("Рецепт уже добавлен в избранное")}
+    status_code = status.HTTP_400_BAD_REQUEST
+
+
+class ShoppingCartExistsError(ValidationError):
+    """
+    Невозможно добавить рецепт в избранного,
+    если автора уже сделал это.
+    """
+    default_code = 'errors'
+    default_detail = {f"{default_code}": _("Рецепт уже добавлен в корзину")}
+    status_code = status.HTTP_400_BAD_REQUEST
+
+
+class FavoriteDoesntExistError(ValidationError):
+    """
+    Невозможно убрать рецепт из корзины,
+    если его там нет.
+    """
+    default_code = 'errors'
+    default_detail = {
+        f"{default_code}": _("Рецепт не был добавлен в избранное")
+    }
+    status_code = status.HTTP_400_BAD_REQUEST
+
+
+class ShoppingCartDoesntExistError(ValidationError):
+    """
+    Невозможно добавить рецепт в корзину,
+    если автора уже сделал это.
+    """
+    default_code = 'errors'
+    default_detail = {f"{default_code}": _("Рецепт уже добавлен в корзину")}
     status_code = status.HTTP_400_BAD_REQUEST

@@ -1,13 +1,14 @@
 from django.contrib.auth import get_user_model
 from django.db.transaction import atomic
 from djoser.serializers import UserCreateSerializer, UserSerializer
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                            ShoppingCart, Tag)
 from rest_framework import serializers
-
-from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 from users.models import Subscription
 
 from .exceptions import TagsIngredientsRequiredError
-from .validators import (IngredientsValidator, SubscriptionValidator,
+from .validators import (FavoriteValidator, IngredientsValidator,
+                         ShoppingCartValidator, SubscriptionValidator,
                          TagsValidator)
 
 CustomUser = get_user_model()
@@ -235,7 +236,7 @@ class SubscriptionListSerializer(CustomUserSerializer):
         return obj.recipes.count()
 
 
-class SubscriptionSerializer(serializers.ModelSerializer):
+class SubscriptionCreateSerializer(serializers.ModelSerializer):
     """Сериализатор создания подписки"""
 
     class Meta:
@@ -246,10 +247,37 @@ class SubscriptionSerializer(serializers.ModelSerializer):
         if SubscriptionValidator(data=data)():
             return data
 
-    def create(self, validated_data):
-        return Subscription.objects.create(**validated_data)
-
     def to_representation(self, instance):
         return SubscriptionListSerializer(
             instance=instance.author, context=self.context
         ).data
+
+
+class FavoritesAddSerializer(serializers.ModelSerializer):
+    """Сериализатор добавления в избранное"""
+
+    class Meta:
+        model = Favorite
+        fields = ['recipe', 'user']
+
+    def validate(self, data):
+        if FavoriteValidator(data=data)():
+            return data
+
+    def to_representation(self, instance):
+        return SimpleRecipeSerializer(instance=instance.recipe).data
+
+
+class ShoppingCartAddSerializer(serializers.ModelSerializer):
+    """Сериализатор добавления в избранное"""
+
+    class Meta:
+        model = ShoppingCart
+        fields = ['recipe', 'user']
+
+    def validate(self, data):
+        if ShoppingCartValidator(data=data)():
+            return data
+
+    def to_representation(self, instance):
+        return SimpleRecipeSerializer(instance=instance.recipe).data

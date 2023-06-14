@@ -1,23 +1,35 @@
+import io
+
 from django.contrib.auth import get_user_model
+from django.db.models import Sum
 from django.db.utils import IntegrityError
+from django.http import FileResponse
 from django.utils.translation import gettext_lazy as _
 from djoser.views import UserViewSet
+from recipes.models import (Ingredient, Recipe, RecipeIngredient, ShoppingCart,
+                            Tag)
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+from reportlab.pdfgen import canvas
 from rest_framework import status
 from rest_framework.decorators import action
+from rest_framework.exceptions import NotFound
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
-from recipes.models import Ingredient, Recipe, Tag
-
-from .exceptions import (RecipeExistsError, SubscriptionDoesntExistError,
-                         SubscriptionYouError)
+from .exceptions import (FavoriteDoesntExistError, RecipeExistsError,
+                         ShoppingCartDoesntExistError,
+                         SubscriptionDoesntExistError, SubscriptionYouError)
+# from .services.service_shopping_cart import generate_pdf
 from .paginators import CustomPagination
 from .permissions import IsOwnerAdminOrReadOnly
-from .serializers import (IngredientSerializer, RecipeReadSerializer,
-                          RecipeWriteSerializer, SubscriptionListSerializer,
-                          SubscriptionSerializer, TagSerializer)
+from .serializers import (FavoritesAddSerializer, IngredientSerializer,
+                          RecipeReadSerializer, RecipeWriteSerializer,
+                          ShoppingCartAddSerializer,
+                          SubscriptionCreateSerializer,
+                          SubscriptionListSerializer, TagSerializer)
 
 CustomUser = get_user_model()
 
@@ -43,38 +55,43 @@ class CustomUserViewSet(UserViewSet):
         return self.get_paginated_response(data=serializer.data)
 
     @action(
-        methods=['post', 'delete'],
+        methods=['post'],
         detail=True,
         permission_classes=[IsAuthenticated]
     )
     def subscribe(self, request, id):
-        """Подписаться на пользователя или отписаться от него"""
+        """Подписаться на пользователя"""
         author = get_object_or_404(CustomUser, id=id)
         user = request.user
 
-        if request.method == 'POST':
-            serializer = SubscriptionSerializer(
-                data={'author': author.id, 'user': user.id},
-                context={'request': request}
+        serializer = SubscriptionCreateSerializer(
+            data={'author': author.id, 'user': user.id},
+            context={'request': request}
+        )
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()  # Подписываемся на автора
+            return Response(
+                data=serializer.data,
+                status=status.HTTP_201_CREATED
             )
-            if serializer.is_valid(raise_exception=True):
-                serializer.save()  # Подписываемся на автора
-                return Response(
-                    data=serializer.data,
-                    status=status.HTTP_201_CREATED
-                )
 
-        if request.method == 'DELETE':
-            if user == author:
-                raise SubscriptionYouError(
-                    detail=_('Невозможно отписаться от себя')
-                )
+    @subscribe.mapping.delete
+    def subscribe_delete(self, request, id):
+        """Отписаться от пользователя"""
+        author = get_object_or_404(CustomUser, id=id)
+        user = request.user
 
-            if user.subscriber.filter(author=author).exists():
-                user.subscriber.filter(author=author).delete()  # Отписка
-                return Response(status=status.HTTP_204_NO_CONTENT)
+        if user == author:
+            raise SubscriptionYouError(
+                detail=_('Невозможно отписаться от себя')
+            )
 
-            raise SubscriptionDoesntExistError
+        subscription_check = user.subscriber.filter(author=author)
+        if subscription_check.exists():
+            subscription_check.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        raise SubscriptionDoesntExistError
 
 
 class TagViewSet(ReadOnlyModelViewSet):
@@ -117,3 +134,125 @@ class RecipeViewSet(ModelViewSet):
             serializer.save(author=self.request.user)
         except IntegrityError:
             raise RecipeExistsError
+
+    @action(
+        methods=['GET'],
+        detail=False,
+        permission_classes=[IsAuthenticated]
+    )
+    def download_shopping_cart(self, request):
+        """Скачать PDF с ингредиентами рецептов в корзине"""
+        user = request.user
+
+        shopping_list = RecipeIngredient.objects.filter(
+            recipe__in_cart__user=user
+        ).order_by('ingredient__name').values(
+            'ingredient__name', 'ingredient__measurement_unit'
+        ).annotate(amount=Sum('amount'))
+
+        if shopping_list:
+            title = 'Список продуктов'
+
+            pdfmetrics.registerFont(
+                TTFont(
+                    'Vasek',
+                    'static/templates/fonts/Vasek.ttf'
+                )
+            )
+            buffer = io.BytesIO()
+            pdf_file = canvas.Canvas(buffer)
+
+            pdf_file.setFont('Vasek', 50)
+            pdf_file.drawString(200, 790, title)
+            pdf_file.setFont('Vasek', 30)
+
+            height = 740
+            width = 75
+
+            for numb, item in enumerate(shopping_list, 1):
+                pdf_file.drawString(width, height, (
+                    f'{numb}. {str(item["ingredient__name"]).capitalize()} '
+                    f'- {item["amount"]} '
+                    f'{item["ingredient__measurement_unit"]}'))
+                height -= 40
+
+            pdf_file.showPage()
+            pdf_file.save()
+            buffer.seek(0)
+
+            return FileResponse(
+                buffer,
+                as_attachment=True,
+                filename="shopping_list.pdf"
+            )
+
+        return NotFound(detail=_('В корзине ничего нет'), code='errors')
+
+    @action(
+        methods=['POST'],
+        detail=True,
+        permission_classes=[IsAuthenticated]
+    )
+    def shopping_cart(self, request, pk):
+        """Добавить рецепт в корзину"""
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=pk)
+        data = {'recipe': recipe.id, 'user': user.id}
+
+        serializer = ShoppingCartAddSerializer(data=data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+
+            return Response(
+                data=serializer.data,
+                status=status.HTTP_201_CREATED
+            )
+
+    @shopping_cart.mapping.delete
+    def shopping_cart_delete(self, request, pk):
+        """Удалить рецепт из корзины"""
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=pk)
+
+        if get_object_or_404(ShoppingCart, user=user, recipe=recipe).delete():
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        cart_check = user.cart.filter(recipe=recipe)
+        if cart_check.exists():
+            cart_check.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        raise ShoppingCartDoesntExistError
+
+    @action(
+        methods=['POST'],
+        detail=True,
+        permission_classes=[IsAuthenticated]
+    )
+    def favorite(self, request, pk):
+        """Добавить рецепт в избранное"""
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=pk)
+        data = {'recipe': recipe.id, 'user': user.id}
+
+        serializer = FavoritesAddSerializer(data=data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+
+            return Response(
+                data=serializer.data,
+                status=status.HTTP_201_CREATED
+            )
+
+    @favorite.mapping.delete
+    def favorite_delete(self, request, pk):
+        """Удалить рецепт из избранного"""
+        user = request.user
+        recipe = get_object_or_404(Recipe, id=pk)
+
+        favorite_check = user.favorites.filter(recipe=recipe)
+        if favorite_check.exists():
+            favorite_check.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        raise FavoriteDoesntExistError

@@ -1,6 +1,7 @@
 from django.utils.translation import gettext_lazy as _
 
-from .exceptions import (IngredientDuplicateError, IngredientLimitError,
+from .exceptions import (FavoriteExistsError, IngredientDuplicateError,
+                         IngredientLimitError, ShoppingCartExistsError,
                          SubscriptionExistsError, SubscriptionYouError,
                          TagDuplicateError)
 
@@ -86,5 +87,51 @@ class SubscriptionValidator:
         if user.subscriber.filter(
                 user=user, author=author).exists():
             raise SubscriptionExistsError
+
+        return True
+
+
+class FavoriteValidator:
+    """Валидатор подписки"""
+    message = _('Невозможно добавить в избранное')
+
+    def __init__(self, data, message=None):
+        self.data = data
+        if message:
+            self.message = message
+
+    def __call__(self):
+        return self.validate(self.data)
+
+    @staticmethod
+    def validate(data):
+        user = data.get('user')
+        recipe = data.get('recipe')
+
+        if user.favorites.filter(recipe=recipe).exists():
+            raise FavoriteExistsError
+
+        return True
+
+
+class ShoppingCartValidator:
+    """Валидатор корзины рецептов"""
+    message = _('Невозможно добавить в корзину')
+
+    def __init__(self, data, message=None):
+        self.data = data
+        if message:
+            self.message = message
+
+    def __call__(self):
+        return self.validate(self.data)
+
+    @staticmethod
+    def validate(data):
+        user = data.get('user')
+        recipe = data.get('recipe')
+
+        if user.cart.filter(recipe=recipe).exists():
+            raise ShoppingCartExistsError
 
         return True
