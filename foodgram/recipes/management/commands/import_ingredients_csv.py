@@ -2,7 +2,7 @@ import os
 from csv import reader as read_csv
 
 from django.core.management import BaseCommand, CommandError
-from django.db import transaction
+from django.db.transaction import atomic
 
 from foodgram.settings import BASE_DIR
 from recipes.models import Ingredient
@@ -15,6 +15,7 @@ class Command(BaseCommand):
     """
     help = 'Loads Ingredients data from CSV'
 
+    @atomic
     def handle(self, *args, **options):
         csv_file = 'ingredients.csv'
         path_to_csv = os.path.join(BASE_DIR, 'recipes/init_data', csv_file)
@@ -23,23 +24,22 @@ class Command(BaseCommand):
             reader = read_csv(file)
             total_rows = 0
 
-            with transaction.atomic():
-                for i, row in enumerate(reader):
-                    try:
-                        Ingredient.objects.create(
-                            name=row[0],
-                            measurement_unit=row[1]
-                        )
-                        total_rows = i
+            for i, row in enumerate(reader):
+                try:
+                    Ingredient.objects.create(
+                        name=row[0],
+                        measurement_unit=row[1]
+                    )
+                    total_rows = i
 
-                    except ValueError as e:
-                        self.stdout.write(self.style.ERROR(
-                            f'Error report problem:\n\n'
-                            f'ID ROW: {i}\n\n'
-                            f'ROW: {row}\n\n'
-                            f'Error details: {str(e)}'
-                        ))
-                        raise CommandError('Error while adding data')
+                except ValueError as e:
+                    self.stdout.write(self.style.ERROR(
+                        f'Error report problem:\n\n'
+                        f'ID ROW: {i}\n\n'
+                        f'ROW: {row}\n\n'
+                        f'Error details: {str(e)}'
+                    ))
+                    raise CommandError('Error while adding data')
 
         self.stdout.write(self.style.SUCCESS(
             f'{Ingredient.__name__} data from {csv_file} '

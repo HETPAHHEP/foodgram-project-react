@@ -7,6 +7,8 @@ from django.http import FileResponse
 from django.utils.translation import gettext_lazy as _
 from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
+from recipes.models import (Ingredient, Recipe, RecipeIngredient, ShoppingCart,
+                            Tag)
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
@@ -17,9 +19,6 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
-
-from recipes.models import (Ingredient, Recipe, RecipeIngredient, ShoppingCart,
-                            Tag)
 
 from .exceptions import (FavoriteDoesntExistError, RecipeExistsError,
                          ShoppingCartDoesntExistError,
