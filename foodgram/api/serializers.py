@@ -9,9 +9,9 @@ from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
 from users.models import Subscription
 
 from .exceptions import TagsIngredientsRequiredError
-from .validators import (FavoriteValidator, IngredientsValidator,
-                         ShoppingCartValidator, SubscriptionValidator,
-                         TagsValidator)
+from .validators import (favorite_validator, ingredients_validator,
+                         shopping_cart_validator, subscription_validator,
+                         tags_validator)
 
 CustomUser = get_user_model()
 
@@ -155,8 +155,8 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         if not tags or not ingredients:
             raise TagsIngredientsRequiredError
 
-        if IngredientsValidator(data=ingredients)() and \
-                TagsValidator(data=tags)():
+        if ingredients_validator(data=ingredients) and \
+                tags_validator(data=tags):
             return validated_data
 
     @atomic
@@ -247,7 +247,7 @@ class SubscriptionCreateSerializer(serializers.ModelSerializer):
         fields = ['user', 'author']
 
     def validate(self, data):
-        if SubscriptionValidator(data=data)():
+        if subscription_validator(data=data)():
             return data
 
     def to_representation(self, instance):
@@ -264,7 +264,7 @@ class FavoritesAddSerializer(serializers.ModelSerializer):
         fields = ['recipe', 'user']
 
     def validate(self, data):
-        if FavoriteValidator(data=data)():
+        if favorite_validator(data=data)():
             return data
 
     def to_representation(self, instance):
@@ -279,7 +279,7 @@ class ShoppingCartAddSerializer(serializers.ModelSerializer):
         fields = ['recipe', 'user']
 
     def validate(self, data):
-        if ShoppingCartValidator(data=data)():
+        if shopping_cart_validator(data=data)():
             return data
 
     def to_representation(self, instance):

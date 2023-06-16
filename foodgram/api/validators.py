@@ -6,132 +6,68 @@ from .exceptions import (FavoriteExistsError, IngredientDuplicateError,
                          TagDuplicateError)
 
 
-class IngredientsValidator:
-    """Валидатор ингредиентов"""
-    message = _('Ингредиенты недействительны')
+def ingredients_validator(data):
     limits = {
         'ingredients': 30,
         'amount': 10_000
     }
 
-    def __init__(self, data, message=None):
-        self.data = data
-        if message:
-            self.message = message
+    ingredients_set = set(
+        ingredient['id'] for ingredient in data
+    )
 
-    def __call__(self):
-        return self.validate(self.data)
+    if len(data) != len(ingredients_set):
+        raise IngredientDuplicateError
 
-    def validate(self, data):
-        ingredients_set = set(
-            ingredient['id'] for ingredient in data
-        )
+    if len(data) > limits['ingredients']:
+        raise IngredientLimitError(limits['ingredients'])
 
-        if len(data) != len(ingredients_set):
-            raise IngredientDuplicateError
+    for ingredient in data:
+        if ingredient['amount'] > limits['amount']:
+            raise IngredientLimitError(
+                limit_numb=limits['amount'],
+                detail=_('Превышено количество ингредиента')
+            )
 
-        if len(data) > self.limits['ingredients']:
-            raise IngredientLimitError(self.limits['ingredients'])
-
-        for ingredient in data:
-            if ingredient['amount'] > self.limits['amount']:
-                raise IngredientLimitError(
-                    limit_numb=self.limits['amount'],
-                    detail=_('Превышено количество ингредиента')
-                )
-
-        return True
+    return True
 
 
-class TagsValidator:
-    """Валидатор тегов"""
-    message = _('Теги недействительны')
+def tags_validator(data):
+    if len(set(data)) != len(data):
+        raise TagDuplicateError
 
-    def __init__(self, data, message=None):
-        self.data = data
-        if message:
-            self.message = message
-
-    def __call__(self):
-        return self.validate(self.data)
-
-    @staticmethod
-    def validate(data):
-        print()
-        if len(set(data)) != len(data):
-            raise TagDuplicateError
-
-        return True
+    return True
 
 
-class SubscriptionValidator:
-    """Валидатор подписки"""
-    message = _('Подписка недействительна')
+def subscription_validator(data):
+    user = data.get('user')
+    author = data.get('author')
 
-    def __init__(self, data, message=None):
-        self.data = data
-        if message:
-            self.message = message
+    if user == author:
+        raise SubscriptionYouError
 
-    def __call__(self):
-        return self.validate(self.data)
+    if user.subscriber.filter(
+            user=user, author=author).exists():
+        raise SubscriptionExistsError
 
-    @staticmethod
-    def validate(data):
-        user = data.get('user')
-        author = data.get('author')
-
-        if user == author:
-            raise SubscriptionYouError
-
-        if user.subscriber.filter(
-                user=user, author=author).exists():
-            raise SubscriptionExistsError
-
-        return True
+    return True
 
 
-class FavoriteValidator:
-    """Валидатор подписки"""
-    message = _('Невозможно добавить в избранное')
+def favorite_validator(data):
+    user = data.get('user')
+    recipe = data.get('recipe')
 
-    def __init__(self, data, message=None):
-        self.data = data
-        if message:
-            self.message = message
+    if user.favorites.filter(recipe=recipe).exists():
+        raise FavoriteExistsError
 
-    def __call__(self):
-        return self.validate(self.data)
-
-    @staticmethod
-    def validate(data):
-        user = data.get('user')
-        recipe = data.get('recipe')
-
-        if user.favorites.filter(recipe=recipe).exists():
-            raise FavoriteExistsError
-
-        return True
+    return True
 
 
-class ShoppingCartValidator:
-    """Валидатор корзины рецептов"""
-    message = _('Невозможно добавить в корзину')
+def shopping_cart_validator(data):
+    user = data.get('user')
+    recipe = data.get('recipe')
 
-    def __init__(self, data, message=None):
-        self.data = data
-        if message:
-            self.message = message
+    if user.cart.filter(recipe=recipe).exists():
+        raise ShoppingCartExistsError
 
-    def __call__(self):
-        return self.validate(self.data)
-
-    @staticmethod
-    def validate(data):
-        user = data.get('user')
-        recipe = data.get('recipe')
-
-        if user.cart.filter(recipe=recipe).exists():
-            raise ShoppingCartExistsError
-
-        return True
+    return True
