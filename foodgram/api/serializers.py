@@ -1,9 +1,11 @@
 from django.contrib.auth import get_user_model
 from django.db.transaction import atomic
 from djoser.serializers import UserCreateSerializer, UserSerializer
+from drf_extra_fields.fields import Base64ImageField
+from rest_framework import serializers
+
 from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
                             ShoppingCart, Tag)
-from rest_framework import serializers
 from users.models import Subscription
 
 from .exceptions import TagsIngredientsRequiredError
@@ -135,6 +137,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
     tags = serializers.PrimaryKeyRelatedField(
         many=True, queryset=Tag.objects.all()
     )
+    image = Base64ImageField()
 
     class Meta:
         model = Recipe

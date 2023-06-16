@@ -78,9 +78,7 @@ class Recipe(models.Model):
         verbose_name=_('Время приготовления')
     )
     image = models.ImageField(
-        upload_to='recipes/',
-        blank=True,
-        null=True,
+        upload_to='recipes/images/',
         verbose_name=_('Изображение рецепта')
     )
     author = models.ForeignKey(
@@ -109,6 +107,7 @@ class Recipe(models.Model):
     class Meta:
         verbose_name = _('Рецепт')
         verbose_name_plural = _('Рецепты')
+        ordering = ['-pub_date']
         constraints = [
             models.UniqueConstraint(
                 fields=['name', 'author'],
