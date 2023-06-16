@@ -3,9 +3,9 @@ import os
 
 from django.core.management import BaseCommand, CommandError
 from django.db.transaction import atomic
+from recipes.models import Ingredient
 
 from foodgram.settings import BASE_DIR
-from recipes.models import Ingredient
 
 
 class Command(BaseCommand):
