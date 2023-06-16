@@ -7,6 +7,7 @@ from .exceptions import (FavoriteExistsError, IngredientDuplicateError,
 
 
 def ingredients_validator(data):
+    """Валидатор ингредиентов"""
     limits = {
         'ingredients': 30,
         'amount': 10_000
@@ -33,6 +34,7 @@ def ingredients_validator(data):
 
 
 def tags_validator(data):
+    """Валидатор тегов"""
     if len(set(data)) != len(data):
         raise TagDuplicateError
 
@@ -40,6 +42,7 @@ def tags_validator(data):
 
 
 def subscription_validator(data):
+    """Валидатор подписки"""
     user = data.get('user')
     author = data.get('author')
 
@@ -54,6 +57,7 @@ def subscription_validator(data):
 
 
 def favorite_validator(data):
+    """Валидатор подписки"""
     user = data.get('user')
     recipe = data.get('recipe')
 
@@ -64,6 +68,7 @@ def favorite_validator(data):
 
 
 def shopping_cart_validator(data):
+    """Валидатор корзины рецептов"""
     user = data.get('user')
     recipe = data.get('recipe')
 
