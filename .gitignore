@@ -170,3 +170,5 @@ cython_debug/
 # flake8 setup
 setup.cfg
 .config/flake8
+
+*/media/
