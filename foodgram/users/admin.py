@@ -9,12 +9,14 @@ CustomUser = get_user_model()
 
 @admin.register(CustomUser)
 class UserAdmin(admin.ModelAdmin):
+    """Отображение пользователей"""
     list_display = ['id', 'username', 'email', 'first_name', 'last_name']
     list_filter = ['email', 'username']
 
 
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):
+    """Отображение подписок пользователей"""
     list_display = ['id', 'follower_username', 'author_username']
 
     def follower_username(self, obj):
