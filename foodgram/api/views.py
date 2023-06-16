@@ -5,9 +5,8 @@ from django.db.models import Sum
 from django.db.utils import IntegrityError
 from django.http import FileResponse
 from django.utils.translation import gettext_lazy as _
+from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet
-from recipes.models import (Ingredient, Recipe, RecipeIngredient, ShoppingCart,
-                            Tag)
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
@@ -19,9 +18,13 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ReadOnlyModelViewSet
 
+from recipes.models import (Ingredient, Recipe, RecipeIngredient, ShoppingCart,
+                            Tag)
+
 from .exceptions import (FavoriteDoesntExistError, RecipeExistsError,
                          ShoppingCartDoesntExistError,
                          SubscriptionDoesntExistError, SubscriptionYouError)
+from .filters import RecipeFilter
 # from .services.service_shopping_cart import generate_pdf
 from .paginators import CustomPagination
 from .permissions import IsOwnerAdminOrReadOnly
@@ -98,7 +101,6 @@ class TagViewSet(ReadOnlyModelViewSet):
     """Вывод всех тегов или только конкретного"""
     serializer_class = TagSerializer
     queryset = Tag.objects.all()
-
     pagination_class = None  # Убирает пагинацию по умолчанию
 
 
@@ -106,7 +108,6 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     """Вывод всех ингредиентов или только конкретного"""
     serializer_class = IngredientSerializer
     queryset = Ingredient.objects.all()
-
     pagination_class = None  # Убирает пагинацию по умолчанию
 
 
@@ -114,8 +115,8 @@ class RecipeViewSet(ModelViewSet):
     """Вывод и изменение рецептов"""
     queryset = Recipe.objects.all()
     pagination_class = CustomPagination
-
-    permission_classes = []  # По умолчанию: AllowAny
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = RecipeFilter
 
     def get_serializer_class(self):
         if self.action in ('create', 'update'):
@@ -183,7 +184,7 @@ class RecipeViewSet(ModelViewSet):
             return FileResponse(
                 buffer,
                 as_attachment=True,
-                filename="shopping_list.pdf"
+                filename=f"shopping_list_{user}.pdf"
             )
 
         return NotFound(detail=_('В корзине ничего нет'), code='errors')
