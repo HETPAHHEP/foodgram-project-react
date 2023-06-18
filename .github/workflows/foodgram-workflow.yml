@@ -47,7 +47,6 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: backend/
-          file: Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/foodgram-backend:latest
           
@@ -55,7 +54,6 @@ jobs:
         uses: docker/build-push-action@v4
         with:
           context: frontend/
-          file: Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/foodgram-frontend:latest
   
