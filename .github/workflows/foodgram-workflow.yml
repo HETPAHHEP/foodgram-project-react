@@ -1,6 +1,9 @@
 name: Foodgram Workflow
 
-on: [workflow_dispatch]
+on:
+  push:
+    branches:
+      - main
 
 jobs:
   tests:
