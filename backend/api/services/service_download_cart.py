@@ -11,7 +11,7 @@ def download_cart_pdf(shopping_list):
     pdfmetrics.registerFont(
         TTFont(
             'Vasek',
-            'static/templates/fonts/Vasek.ttf'
+            'data/fonts/Vasek.ttf'
         )
     )
     buffer = io.BytesIO()

@@ -18,7 +18,7 @@ class Command(BaseCommand):
     @atomic
     def handle(self, *args, **options):
         csv_file = 'ingredients.csv'
-        path_to_csv = os.path.join(BASE_DIR, 'recipes/init_data', csv_file)
+        path_to_csv = os.path.join(BASE_DIR, 'data', csv_file)
 
         with open(path_to_csv, 'r', encoding='utf-8') as file:
             reader = read_csv(file)

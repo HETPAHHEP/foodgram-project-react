@@ -18,7 +18,7 @@ class Command(BaseCommand):
     @atomic
     def handle(self, *args, **options):
         json_file = 'ingredients.json'
-        path_to_json = os.path.join(BASE_DIR, 'recipes/init_data', json_file)
+        path_to_json = os.path.join(BASE_DIR, 'data', json_file)
 
         with open(path_to_json, 'r', encoding='utf-8') as file:
             reader = json.load(file)
