@@ -155,8 +155,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         if not tags or not ingredients:
             raise TagsIngredientsRequiredError
 
-        if ingredients_validator(data=ingredients) and \
-                tags_validator(data=tags):
+        if ingredients_validator(ingredients) and tags_validator(tags):
             return validated_data
 
     @atomic
@@ -247,7 +246,7 @@ class SubscriptionCreateSerializer(serializers.ModelSerializer):
         fields = ['user', 'author']
 
     def validate(self, data):
-        if subscription_validator(data=data)():
+        if subscription_validator(data):
             return data
 
     def to_representation(self, instance):
@@ -264,7 +263,7 @@ class FavoritesAddSerializer(serializers.ModelSerializer):
         fields = ['recipe', 'user']
 
     def validate(self, data):
-        if favorite_validator(data=data)():
+        if favorite_validator(data):
             return data
 
     def to_representation(self, instance):
@@ -279,7 +278,7 @@ class ShoppingCartAddSerializer(serializers.ModelSerializer):
         fields = ['recipe', 'user']
 
     def validate(self, data):
-        if shopping_cart_validator(data=data)():
+        if shopping_cart_validator(data):
             return data
 
     def to_representation(self, instance):
