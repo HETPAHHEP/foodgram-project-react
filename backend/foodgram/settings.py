@@ -160,6 +160,8 @@ DJOSER = {
     'PASSWORD_RESET_SHOW_EMAIL_NOT_FOUND': True,
     'USERNAME_RESET_SHOW_EMAIL_NOT_FOUND': True,
 
+    'LOGIN_FIELD': 'email',
+
     'HIDE_USERS': False,
 
     'PERMISSIONS': {
