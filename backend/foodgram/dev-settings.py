@@ -2,10 +2,11 @@
 
 import os
 from dotenv import load_dotenv
-from .settings import *
+from .settings import *  # noqa
 
 load_dotenv()
 
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 DEBUG = True
 
