@@ -76,7 +76,7 @@ jobs:
        script: |
          # Остановка и удаление контейнера
          sudo docker-compose stop
-         sudo docker-compose rm -f web
+         sudo docker-compose rm -f backend
          
          # Очистка файла .env перед добавлением переменных
          truncate -s 0 .env
