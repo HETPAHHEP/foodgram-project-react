@@ -74,6 +74,10 @@ jobs:
        key: ${{ secrets.SSH_KEY }}
        passphrase: ${{ secrets.PASSPHRASE }} # ssh-ключ защищен фразой-паролем
        script: |
+         # Обновление образов
+         sudo docker pull ${{ secrets.USER }}/foodgram-backend:latest
+         sudo docker pull ${{ secrets.USER }}/foodgram-frontend:latest
+         
          # Остановка и удаление контейнера
          sudo docker-compose stop
          sudo docker-compose rm -f backend
