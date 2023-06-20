@@ -19,7 +19,7 @@ from recipes.models import (Ingredient, Recipe, RecipeIngredient, ShoppingCart,
 from .exceptions import (FavoriteDoesntExistError, RecipeExistsError,
                          ShoppingCartDoesntExistError,
                          SubscriptionDoesntExistError, SubscriptionYouError)
-from .filters import RecipeFilter, IngredientFilter
+from .filters import IngredientFilter, RecipeFilter
 from .paginators import CustomPagination
 from .permissions import IsOwnerAdminOrReadOnly
 from .serializers import (FavoritesAddSerializer, IngredientSerializer,
