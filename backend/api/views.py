@@ -103,7 +103,8 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     """Вывод всех ингредиентов или только конкретного"""
     serializer_class = IngredientSerializer
     queryset = Ingredient.objects.all()
-    filter_backends = [IngredientFilter]
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = IngredientFilter
     search_fields = ['name']
     pagination_class = None  # Убирает пагинацию по умолчанию
 
