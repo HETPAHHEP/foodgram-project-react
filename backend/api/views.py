@@ -19,7 +19,7 @@ from recipes.models import (Ingredient, Recipe, RecipeIngredient, ShoppingCart,
 from .exceptions import (FavoriteDoesntExistError, RecipeExistsError,
                          ShoppingCartDoesntExistError,
                          SubscriptionDoesntExistError, SubscriptionYouError)
-from .filters import RecipeFilter
+from .filters import RecipeFilter, IngredientFilter
 from .paginators import CustomPagination
 from .permissions import IsOwnerAdminOrReadOnly
 from .serializers import (FavoritesAddSerializer, IngredientSerializer,
@@ -103,6 +103,8 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     """Вывод всех ингредиентов или только конкретного"""
     serializer_class = IngredientSerializer
     queryset = Ingredient.objects.all()
+    filter_backends = [IngredientFilter]
+    search_fields = ['name']
     pagination_class = None  # Убирает пагинацию по умолчанию
 
 
