@@ -105,7 +105,7 @@ class IngredientViewSet(ReadOnlyModelViewSet):
     queryset = Ingredient.objects.all()
     filter_backends = [DjangoFilterBackend]
     filterset_class = IngredientFilter
-    search_fields = ['name']
+    search_fields = ['^name']
     pagination_class = None  # Убирает пагинацию по умолчанию
 
 
