@@ -117,14 +117,14 @@ class RecipeViewSet(ModelViewSet):
     filterset_class = RecipeFilter
 
     def get_serializer_class(self):
-        if self.action in ('create', 'update'):
+        if self.action in ('create', 'update', 'partial_update'):
             return RecipeWriteSerializer
         return RecipeReadSerializer
 
     def get_permissions(self):
         if self.action == 'create':
             self.permission_classes = [IsAuthenticated]
-        if self.action in ('delete', 'update'):
+        if self.action in ('delete', 'update', 'partial_update'):
             self.permission_classes = [IsOwnerAdminOrReadOnly]
         return [permission() for permission in self.permission_classes]
 

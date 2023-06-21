@@ -152,16 +152,21 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         ingredients = data.get('ingredients')
         tags = data.get('tags')
 
-        if not tags or not ingredients:
-            raise TagsIngredientsRequiredError
+        if tags:
+            tags_validator(tags)
 
-        if ingredients_validator(ingredients) and tags_validator(tags):
-            return validated_data
+        if ingredients:
+            ingredients_validator(ingredients)
+
+        return validated_data
 
     @atomic
     def create(self, validated_data):
         ingredients_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
+
+        if not tags and not ingredients:
+            raise TagsIngredientsRequiredError
 
         recipe = Recipe.objects.create(**validated_data)
 
@@ -184,7 +189,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         recipe = super().update(instance, validated_data)
 
         if ingredients_data:
-            recipe.ingredients.delete()
+            recipe.ingredients.clear()
 
             for ingredient_data in ingredients_data:
                 ingredient = ingredient_data['id']
@@ -194,7 +199,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
                 )
 
         if tags_data:
-            recipe.tags.delete()
+            recipe.tags.clear()
             recipe.tags.set(tags_data)
 
         recipe.save()
