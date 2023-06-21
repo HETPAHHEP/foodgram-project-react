@@ -165,7 +165,7 @@ class RecipeWriteSerializer(serializers.ModelSerializer):
         ingredients_data = validated_data.pop('ingredients')
         tags_data = validated_data.pop('tags')
 
-        if not tags and not ingredients:
+        if not tags_data and not ingredients_data:
             raise TagsIngredientsRequiredError
 
         recipe = Recipe.objects.create(**validated_data)
