@@ -186,4 +186,4 @@
 
 [Github-Actions-url]: https://github.com/features/actions
 
-[Workflow-badge]: https://img.shields.io/github/actions/workflow/status/HETPAHHEP/foodgram-project-react/foodgram-workflow.yml?style=for-the-badge&logo=github&label=Foodgram%20Workflow
+[Workflow-badge]: https://img.shields.io/github/actions/workflow/status/HETPAHHEP/foodgram-project-react/foodgram-workflow.yml?style=flat&logo=github&label=Foodgram%20Workflow
