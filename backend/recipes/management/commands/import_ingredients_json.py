@@ -23,6 +23,7 @@ class Command(BaseCommand):
         with open(path_to_json, 'r', encoding='utf-8') as file:
             reader = json.load(file)
             total_rows = len(reader)
+            total_ingredients = 0
 
             for i, row in enumerate(reader):
                 try:
@@ -33,6 +34,7 @@ class Command(BaseCommand):
                         name=name,
                         measurement_unit=measurement_unit
                     )
+                    total_ingredients = i
 
                 except ValueError as e:
                     self.stdout.write(self.style.ERROR(
@@ -46,4 +48,5 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(
             f'{Ingredient.__name__} data from {json_file} '
             f'imported successfully. '
-            f'Total rows: {total_rows}'))
+            f'Total rows: {total_rows}'
+            f'Total rows: {total_ingredients}'))

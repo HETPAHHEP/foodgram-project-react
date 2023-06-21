@@ -22,7 +22,7 @@ class Command(BaseCommand):
 
         with open(path_to_csv, 'r', encoding='utf-8') as file:
             reader = read_csv(file)
-            total_rows = 0
+            total_ingredients = 0
 
             for i, row in enumerate(reader):
                 try:
@@ -30,7 +30,7 @@ class Command(BaseCommand):
                         name=row[0],
                         measurement_unit=row[1]
                     )
-                    total_rows = i
+                    total_ingredients = i
 
                 except ValueError as e:
                     self.stdout.write(self.style.ERROR(
@@ -44,5 +44,5 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(
             f'{Ingredient.__name__} data from {csv_file} '
             f'imported successfully. '
-            f'Total rows: {total_rows}'
+            f'Total ingredients: {total_ingredients}'
         ))
