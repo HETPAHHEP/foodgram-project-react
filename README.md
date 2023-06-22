@@ -50,7 +50,7 @@
    sudo apt-get install docker-compose
    ```
 
-3. **Перенести необходимые файлы**
+3. **Перенесите необходимые файлы**
    
    ```bash
    scp docker-compose.yml <username>@<host>:/home/<username>/
