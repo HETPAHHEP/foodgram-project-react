@@ -132,7 +132,7 @@
 
     ```dotenv
     EMAIL=your@email.com
-    DJANGO_SECRET_KEY=django-insecure-c!1%u=@5f*u-*?9@jrst=k%-mziamu!voagve&lf=k7kqhn8qf
+    DJANGO_SECRET_KEY=your-django-secret
     DB_ENGINE=django.db.backends.postgresql
     DB_NAME=postgres
     POSTGRES_USER=postgres
